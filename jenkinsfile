@@ -1,0 +1,39 @@
+pipeline{
+  agent any
+  environment{
+    BRANCH = 'master'
+    GIT_URL = 'https://devops-maq-vlc.pl.s2-eu.capgemini.com/gitlab/ileoncas/proyecto-prueba.git'
+    GIT_USER_ID = 'ileoncas'
+    MAVEN_INSTALLATION_ID = 'Maven3'
+    SONAR_SERVER_ID = 'sonarqube'
+  }
+  stages{
+    stage('download'){
+      steps{
+        script{
+          git credentialsId: env.GIT_USER_ID, url: env.GIT_URL, branch: env.BRANCH
+        }
+      }
+
+    }
+    stage('Build'){
+      steps{
+        withMaven(
+          maven: env.MAVEN_INSTALLATION_ID
+        ){
+          sh 'mvn compile'
+        }
+      }
+
+    }
+    stage('Analisys'){
+        steps{
+          withSonarQubeEnv("sonarqube"){
+           withMaven(
+          maven: env.MAVEN_INSTALLATION_ID
+        ){sh "mvn sonar:sonar -Dsonar.projectName='sonarqubei'"}
+          }
+      }      
+    }
+  }
+}
